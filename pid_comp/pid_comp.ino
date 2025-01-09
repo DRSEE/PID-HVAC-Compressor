@@ -6,16 +6,14 @@ double prevError = 0.0;              // Erreur précédente pour la partie déri
 double output = 0.0;                 // Sortie PID
 
 // Plage de la sortie (vitesse en RPM)
-const int minRPM = 1500;
-const int maxRPM = 6000;
+const int minRPM = 0;
+const int maxRPM = 1023;
 
 // Pins
 const int potPin = A0;  // Potentiomètre pour la température mesurée
-const int outputPin = 9; // Pin PWM pour le contrôle du compresseur
 
 void setup() {
   Serial.begin(9600);      // Initialisation du port série
-  pinMode(outputPin, OUTPUT); // Configurer la pin PWM comme sortie
 }
 
 void loop() {
@@ -39,8 +37,8 @@ void loop() {
   Serial.print(integral);
   
   // Limiter la partie intégrale pour éviter l'accumulation excessive
-  if (integral > 1000) integral = 1000;
-  if (integral < -1000) integral = -1000;
+  if (integral > 250) integral = 250;
+  if (integral < -250) integral = -250;
   
   double integralPart = ki * integral;
   
@@ -57,13 +55,9 @@ void loop() {
   if (output > maxRPM) output = maxRPM;
   if (output < minRPM) output = minRPM;
 
-  // Générer le signal PWM correspondant à la vitesse
-  int pwmValue = map(output, minRPM, maxRPM, 0, 255); // Convertir RPM en PWM (0-255)
-  analogWrite(outputPin, pwmValue);
-
   // Stocker l'erreur pour le calcul suivant
   prevError = error;
-  
+
   // Afficher les informations sur le moniteur série
   Serial.print("Consigne: ");
   Serial.print(setpoint);
@@ -71,8 +65,6 @@ void loop() {
   Serial.print(measuredTemp);
   Serial.print("°C | Vitesse: ");
   Serial.print(output);
-  Serial.println(" RPM");
-  
+  Serial.println(" RPM");  
   delay(100); // Attendre 100 ms avant la prochaine itération
-  
 }
